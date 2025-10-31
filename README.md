@@ -38,7 +38,6 @@ Algo-Backtester-webserver/
 │
 ├── package.json           # Node dependencies & scripts
 └── .gitignore             # Keeps node_modules, data, engine out of git
----
 
 ## 🛠️ Tech Stack
 | Layer | Technology |
