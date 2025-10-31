@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Algo Backtester</title>
+    <link rel="stylesheet" href="/public/style.css">
+</head>
+<body>
+<header class="hero">
+    <img src="/public/StockMarket.png" alt="Logo" width="120">
+    <h1>Algo Backtester</h1>
+</header>
+
+<nav class="nav">
+    <a href="/">Home</a>
+    <a class="primary" href="/files/TSLA.csv">Download TSlA CSV</a>
+    <a href="/dataset/TSLA">Dataset (Route Parameter)</a>
+    <a href="/backtest?fast=5&slow=20">Backtest (Query Parameters)</a>
+    <a href="/error">Trigger 500 Error</a>
+</nav>
+
+<section>
+    <h2>Welcome to Algorithmic Server</h2>
+    <p>
+        This app will soon let you run a simple Moving Average strategy on sample data.<br>
+        This app will let a user upload or use sample price data, apply a simple trading rule
+        (like buying/selling when moving averages cross), and then show the resulting profit or loss.
+    </p>
+
+    <h2>Backtest validation (AJAX Preview)</h2>
+        <div style="display:flex; gap:0.5rem; justify-content:center; flex-wrap:wrap;">
+            <label>Fast MA:
+                <input id="fastAjax" type="number" min="1" value="3" required>
+            </label>
+            <label>Slow MA:
+                <input id="slowAjax" type="number" min="2" value="5" required>
+            </label>
+            <button id="previewBtn" type="button">Preview (AJAX)</button>
+        </div>
+        <div id="previewResult" style="margin-top:0.75rem; color:#333;"></div>
+
+    <h2>Run Backtest (Form POST)</h2>
+    <p>Information from http-bodies</p>
+    <form method="POST" action="/backtest">
+        <label>
+            Fast MovingAvg: <input type="number" name="fast" min="1" value="3" required>
+        </label>
+        <label>
+            Slow MovingAvg: <input type="number" name="slow" min="2" value="5" required>
+        </label>
+        <button type="submit">Run</button>
+    </form>
+    <p style="font-size:0.9rem; color:#555;">
+        (This uses <code>application/x-www-form-urlencoded</code> — Express reads it via <code>req.body</code>.)
+    </p>
+</section>
+
+<section>
+    <h2>Upload Your CSV File</h2>
+    <form method="POST" action="/upload" enctype="multipart/form-data">
+        <input type="file" name="myfile" accept=".csv" required>
+        <button type="submit">Upload</button>
+    </form>
+    <p style="font-size:0.9rem; color:#555;">
+        (This form uses <code>multipart/form-data</code> — handled by Multer to accept CSV files.)
+    </p>
+</section>
+
+
+<script>
+    const btn = document.getElementById('previewBtn');
+    const output = document.getElementById('previewResult');
+    // when the user will press preview btn then this code will run
+    btn.addEventListener('click', async () => {
+        const fast = document.getElementById('fastAjax').value; // getting the input from browser
+        const slow = document.getElementById('slowAjax').value;
+
+        output.textContent = 'Checking...';
+
+        try {
+            const res = await fetch('/api/backtest-preview', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ fast, slow }) // sending the input value to server in Json form
+            });
+
+            const data = await res.json(); // Handle the server’s json response in the browser
+            if (!res.ok || !data.ok) {
+                output.innerHTML = `<span style="color:#b00020;">${data.message || 'Invalid parameters'}</span>`;
+                return;
+            }
+            output.innerHTML = `<b>Valid!</b> Fast = ${data.fast}, Slow = ${data.slow}<br>${data.note}`;}
+        catch (e) {
+            output.innerHTML = `<span style="color:#b00020;">Network error.</span>`;
+        }
+    });
+</script>
+
+</body>
+</html>

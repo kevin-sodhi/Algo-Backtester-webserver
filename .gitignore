@@ -1,0 +1,5 @@
+node_modules/
+data/
+engine/
+public/errors/
+.DS_Store
