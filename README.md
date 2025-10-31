@@ -19,25 +19,9 @@ When you open the site on **`http://localhost:3000`**, you can:
 ---
 
 ## 🧩 Project Architecture
-Algo-Backtester-webserver/
-│
-├── AlgoBacktester.js      # Main Express server (routes, logic, Java integration)
-├── index.js               # Optional starter/redirect
-│
-├── public/                # Static frontend files (UI, HTML, CSS, assets)
-│   ├── index.html         # Main homepage (upload + run form)
-│   ├── style.css          # Basic clean styling
-│   ├── 404.html, 500.html # Custom error pages
-│   └── StockMarket.png    # Demo image / logo
-│
-├── data/                  # Uploaded CSVs (ignored by git)
-│   └── sample.csv
-│
-├── engine/                # Java JAR copied from algo-backtester-java project
-│   └── algo-backtester.jar
-│
-├── package.json           # Node dependencies & scripts
-└── .gitignore             # Keeps node_modules, data, engine out of git
+Algo-Backtester-webserver
+<img width="626" height="505" alt="Screenshot 2025-10-30 at 10 06 06 PM" src="https://github.com/user-attachments/assets/81e50339-cc12-4d9f-83f5-258c31407072" />
+
 
 ## 🛠️ Tech Stack
 | Layer | Technology |
