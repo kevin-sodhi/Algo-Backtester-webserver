@@ -1,0 +1,13 @@
+<h3>Signals</h3>
+{% if signals and signals.length %}
+  <ul>
+    {% for s in signals | slice(0,5) %}
+      <li><pre>{{ s | safe }}</pre></li>
+    {% endfor %}
+    {% if signals.length > 5 %}
+      <p><em>…and {{ signals.length - 5 }} more</em></p>
+    {% endif %}
+  </ul>
+{% else %}
+  <p>No signals.</p>
+{% endif %}

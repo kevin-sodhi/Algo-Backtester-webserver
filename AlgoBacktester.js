@@ -1,6 +1,8 @@
+// to start the server:
 // nodemon AlgoBacktester.js
 //cd "/Users/kevinsodhi/Library/CloudStorage/OneDrive-UniversityofWinnipeg/ALGO JAVA PROJECT/Algo-backtester-webserver"
 // nodemon AlgoBacktester.js
+// npm run dev
 //  --- 1.  SETUP ---------------------------------------------------
 const express = require('express');
 const app = express();
@@ -10,6 +12,11 @@ const multiparty = require('multiparty');
 const fs = require('fs');
 app.use(express.json()); // for AJAX
 const { spawn } = require('child_process');
+// nunjucks implimentation
+const nunjucks = require('nunjucks');
+nunjucks.configure('views', { autoescape: true, express: app });
+app.set('view engine', 'njk');
+
 //---------------INTEGRATING JAVA WITH NODE.JS-------------------------
 const FILES_DIR = require('path').resolve(__dirname, '..', 'data'); // where files live
 const JAR_PATH = require('path').resolve(
@@ -21,6 +28,8 @@ const JAR_PATH = require('path').resolve(
 );
 console.log('[INFO] JAR_PATH:', JAR_PATH);
 console.log('[INFO] FILES_DIR:', FILES_DIR);
+
+
 if (!fs.existsSync(JAR_PATH)) {
     console.warn('[WARN] Backtester JAR not found at:', JAR_PATH);
 } else {
@@ -67,84 +76,61 @@ function runJavaBacktester({ csv, fast, slow, strategy = 'macrossover' }) {
         });
     });
 }
-/*
-function renderResultsHTML({ csv, fast, slow }, result) {
-    const m = result.metrics || {};
-    return `
-    <h1>Backtest Results</h1>
-    <p><b>CSV:</b> ${csv}</p>
-    <p><b>Fast:</b> ${fast}, <b>Slow:</b> ${slow}</p>
-    <h3>Metrics</h3>
-    <ul>
-      <li>Bars Read: ${m.barsRead || 'N/A'}</li>
-      <li>SMA Fast: ${m.smaFastValue || 'N/A'}</li>
-      <li>SMA Slow: ${m.smaSlowValue || 'N/A'}</li>
-    </ul>
-    <h3>Raw JSON</h3>
-    <pre>${JSON.stringify(result, null, 2)}</pre>
-    <a href="/">← Back</a>
-  `;
-}
-*/
-function renderResultsHTML({ csv, fast, slow }, result) {
-    const m = result?.metrics || {};
-    const series = Array.isArray(result?.series) ? result.series : [];
 
-    // Find most recent bar that has SMA values
-    let lastFast = 'N/A', lastSlow = 'N/A', lastDate = 'N/A';
-    for (let i = series.length - 1; i >= 0; i--) {
-        const row = series[i];
-        if (row?.date) lastDate = row.date;
-        if (row?.smaFast !== undefined || row?.smaSlow !== undefined) {
-            if (row?.smaFast !== undefined) lastFast = row.smaFast;
-            if (row?.smaSlow !== undefined) lastSlow = row.smaSlow;
-            break;
+app.get('/backtest/run', async (req, res) => {
+    try {
+        const fast = parseInt(req.query.fast || '5', 10);
+        const slow = parseInt(req.query.slow || '20', 10);
+        if (!Number.isFinite(fast) || !Number.isFinite(slow) || fast <= 0 || slow <= 0 || fast >= slow) {
+            return res.status(400).render('error.njk', {
+                title: 'Invalid Parameters',
+                code: 400,
+                message: 'Use /backtest/run?fast=5&slow=20 with positive integers and fast < slow.'
+            });
         }
+
+        const csv = resolveCsvPath();
+        const result = await runJavaBacktester({ csv, fast, slow, strategy: 'macrossover' });
+
+        // compute a few display helpers (same as before)
+        const m = result?.metrics || {};
+        const series = Array.isArray(result?.series) ? result.series : [];
+        let lastFast = 'N/A', lastSlow = 'N/A', lastDate = 'N/A';
+        for (let i = series.length - 1; i >= 0; i--) {
+            const row = series[i];
+            if (row?.date) lastDate = row.date;
+            if (row?.smaFast !== undefined || row?.smaSlow !== undefined) {
+                if (row?.smaFast !== undefined) lastFast = row.smaFast;
+                if (row?.smaSlow !== undefined) lastSlow = row.smaSlow;
+                break;
+            }
+        }
+
+        res.render('backtest-results.njk', {
+            title: 'Backtest Results',
+            params: { csv, fast, slow },
+            metrics: {
+                barsRead: m.barsRead ?? 'N/A',
+                trades: m.trades ?? 'N/A',
+                totalReturnPct: m.totalReturnPct ?? 'N/A',
+                lastDate, lastFast, lastSlow
+            },
+            signals: Array.isArray(result?.signals) ? result.signals : [],
+            rawJson: JSON.stringify(result, null, 2)
+        });
+    } catch (err) {
+        console.error(err);
+        res.status(500).render('error.njk', {
+            title: 'Server Error',
+            code: 500,
+            message: err.message || 'Unexpected error while running backtest.'
+        });
     }
+});
 
-    const trades = m.trades ?? 'N/A';
-    const totalReturnPct = m.totalReturnPct ?? 'N/A';
 
-    // Optional: show first few signals, if any
-    const sigs = Array.isArray(result?.signals) ? result.signals : [];
-    const signalsHtml = sigs.length
-        ? `<ul>${sigs.slice(0, 5).map(s => `<li>${escapeHtml(JSON.stringify(s))}</li>`).join('')}</ul>`
-        : '<p>No signals.</p>';
 
-    return `
-    <h1>Backtest Results</h1>
-    <p><b>CSV:</b> ${escapeHtml(csv)}</p>
-    <p><b>Fast MA:</b> ${fast} &nbsp; | &nbsp; <b>Slow MA:</b> ${slow}</p>
 
-    <h3>Summary</h3>
-    <table style="margin:1rem auto; border-collapse:collapse; min-width:360px;">
-      <tbody>
-        <tr><td style="border:1px solid #eee;padding:6px;">Bars Read</td><td style="border:1px solid #eee;padding:6px;text-align:right;">${escapeHtml(m.barsRead)}</td></tr>
-        <tr><td style="border:1px solid #eee;padding:6px;">Last Date</td><td style="border:1px solid #eee;padding:6px;text-align:right;">${escapeHtml(lastDate)}</td></tr>
-        <tr><td style="border:1px solid #eee;padding:6px;">SMA Fast (last)</td><td style="border:1px solid #eee;padding:6px;text-align:right;">${escapeHtml(lastFast)}</td></tr>
-        <tr><td style="border:1px solid #eee;padding:6px;">SMA Slow (last)</td><td style="border:1px solid #eee;padding:6px;text-align:right;">${escapeHtml(lastSlow)}</td></tr>
-        <tr><td style="border:1px solid #eee;padding:6px;">Trades</td><td style="border:1px solid #eee;padding:6px;text-align:right;">${escapeHtml(trades)}</td></tr>
-        <tr><td style="border:1px solid #eee;padding:6px;">Total Return %</td><td style="border:1px solid #eee;padding:6px;text-align:right;">${escapeHtml(totalReturnPct)}</td></tr>
-      </tbody>
-    </table>
-
-    <h3>Signals</h3>
-    ${signalsHtml}
-
-    <h3>Raw JSON</h3>
-    <pre>${escapeHtml(JSON.stringify(result, null, 2))}</pre>
-    <p><a href="/">← Home</a></p>
-  `;
-}
-function escapeHtml(s) {
-    if (s === null || s === undefined) return '';
-    return String(s)
-        .replaceAll('&', '&amp;')
-        .replaceAll('<', '&lt;')
-        .replaceAll('>', '&gt;')
-        .replaceAll('"', '&quot;')
-        .replaceAll("'", '&#39;');
-}
 // --- 2. Middleware --------------------------------------------
 
 // Middleware for static files and URL encoded
@@ -239,6 +225,7 @@ app.get('/backtest', (req, res) =>{
   `);
 });
 */
+/*  ===== DISABLE OLD /backtest ROUTES =====
 app.post('/backtest', async (req, res) => {
     const fast = parseInt(req.body.fast || '3', 10);
     const slow = parseInt(req.body.slow || '5', 10);
@@ -278,6 +265,60 @@ app.post('/backtest', (req, res) => {
     <p>Parsed from req.body using urlencoded parser.</p>
     <a href="/">Home</a>
   `);
+});
+===== END DISABLE ===== */
+
+// for NUNJUCKS
+app.post('/backtest', async (req, res) => {
+    const fast = parseInt(req.body.fast || '3', 10);
+    const slow = parseInt(req.body.slow || '5', 10);
+
+    if (!Number.isFinite(fast) || !Number.isFinite(slow) || fast <= 0 || slow <= 0 || fast >= slow) {
+        return res.status(400).render('error.njk', {
+            title: 'Invalid Parameters',
+            code: 400,
+            message: 'Submit positive integers with fast < slow.'
+        });
+    }
+
+    const csv = resolveCsvPath();
+
+    try {
+        const result = await runJavaBacktester({ csv, fast, slow, strategy: 'macrossover' });
+
+        const m = result?.metrics || {};
+        const series = Array.isArray(result?.series) ? result.series : [];
+        let lastFast = 'N/A', lastSlow = 'N/A', lastDate = 'N/A';
+        for (let i = series.length - 1; i >= 0; i--) {
+            const row = series[i];
+            if (row?.date) lastDate = row.date;
+            if (row?.smaFast !== undefined || row?.smaSlow !== undefined) {
+                if (row?.smaFast !== undefined) lastFast = row.smaFast;
+                if (row?.smaSlow !== undefined) lastSlow = row.smaSlow;
+                break;
+            }
+        }
+
+        return res.render('backtest-results.njk', {
+            title: 'Backtest Results',
+            params: { csv, fast, slow },
+            metrics: {
+                barsRead: m.barsRead ?? 'N/A',
+                trades: m.trades ?? 'N/A',
+                totalReturnPct: m.totalReturnPct ?? 'N/A',
+                lastDate, lastFast, lastSlow
+            },
+            signals: Array.isArray(result?.signals) ? result.signals : [],
+            rawJson: JSON.stringify(result, null, 2)
+        });
+    } catch (err) {
+        console.error('Backtest failed:', err.message);
+        return res.status(500).render('error.njk', {
+            title: 'Backtest Error',
+            code: 500,
+            message: err.message
+        });
+    }
 });
 
 // 6) B. Upload files via multiparty

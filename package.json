@@ -1,11 +1,11 @@
 {
   "name": "project_milestone",
   "version": "1.0.0",
- "main": "AlgoBacktester.js",
-"scripts": {
-  "start": "node AlgoBacktester.js",
-  "dev": "nodemon AlgoBacktester.js"
-},
+  "main": "AlgoBacktester.js",
+  "scripts": {
+    "start": "node AlgoBacktester.js",
+    "dev": "nodemon AlgoBacktester.js"
+  },
   "private": true,
   "keywords": [],
   "author": "",
@@ -14,10 +14,10 @@
   "dependencies": {
     "ejs": "^3.1.10",
     "express": "^5.1.0",
-    "multiparty": "^4.2.3"
+    "multiparty": "^4.2.3",
+    "nunjucks": "^3.2.4"
   },
   "devDependencies": {
     "nodemon": "^3.1.10"
   }
-  
 }
