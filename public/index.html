@@ -6,73 +6,132 @@
     <link rel="stylesheet" href="/public/style.css">
 </head>
 <body>
-<header class="hero">
-    <img src="/public/StockMarket.png" alt="Logo" width="120">
-    <h1>Algo Backtester</h1>
+
+<header class="topbar">
+    <div class="logo-row">
+        <img src="/public/StockMarket.png" alt="Logo">
+        <span class="app-name">Algo Backtester</span>
+    </div>
+    <nav class="main-nav">
+        <a href="/" class="active">Home</a>
+        <a href="/files/TSLA.csv">Download TSLA CSV</a>
+        <a href="/dataset/TSLA">Dataset</a>
+        <a href="/backtest?fast=5&slow=20">Backtest</a>
+        <a href="/error">Trigger 500</a>
+    </nav>
 </header>
 
-<nav class="nav">
-    <a href="/">Home</a>
-    <a class="primary" href="/files/TSLA.csv">Download TSlA CSV</a>
-    <a href="/dataset/TSLA">Dataset (Route Parameter)</a>
-    <a href="/backtest?fast=5&slow=20">Backtest (Query Parameters)</a>
-    <a href="/error">Trigger 500 Error</a>
-</nav>
+<main class="layout">
+    <!-- Welcome text -->
+    <section>
+        <h1 class="welcome-title">Welcome to Algorithmic Server</h1>
+        <p class="welcome-text">
+            This app lets you upload or use sample price data, apply a Moving Average strategy,
+            and then see the resulting profit or loss.
+        </p>
+    </section>
 
-<section>
-    <h2>Welcome to Algorithmic Server</h2>
-    <p>
-        This app will soon let you run a simple Moving Average strategy on sample data.<br>
-        This app will let a user upload or use sample price data, apply a simple trading rule
-        (like buying/selling when moving averages cross), and then show the resulting profit or loss.
-    </p>
-
-    <h2>Backtest validation (AJAX Preview)</h2>
-        <div style="display:flex; gap:0.5rem; justify-content:center; flex-wrap:wrap;">
-            <label>Fast MA:
-                <input id="fastAjax" type="number" min="1" value="3" required>
-            </label>
-            <label>Slow MA:
-                <input id="slowAjax" type="number" min="2" value="5" required>
-            </label>
-            <button id="previewBtn" type="button">Preview (AJAX)</button>
+    <section class="dashboard-grid">
+        <!-- Backtest validation (AJAX) -->
+        <div class="card">
+            <h2>Backtest validation (AJAX Preview)</h2>
+            <div class="form-row">
+                <label>Fast MA
+                    <input id="fastAjax" type="number" min="1" value="3" required>
+                </label>
+                <label>Slow MA
+                    <input id="slowAjax" type="number" min="2" value="5" required>
+                </label>
+            </div>
+            <button id="previewBtn" type="button" class="btn-primary">Preview</button>
+            <div id="previewResult" class="preview-result" style="margin-top:0.75rem;"></div>
         </div>
-        <div id="previewResult" style="margin-top:0.75rem; color:#333;"></div>
 
-    <h2>Run Backtest (Form POST)</h2>
-    <p>Information from http-bodies</p>
-    <form method="POST" action="/backtest">
-        <label>
-            Fast MovingAvg: <input type="number" name="fast" min="1" value="3" required>
-        </label>
-        <label>
-            Slow MovingAvg: <input type="number" name="slow" min="2" value="5" required>
-        </label>
-        <button type="submit">Run</button>
-    </form>
-    <p style="font-size:0.9rem; color:#555;">
-        (This uses <code>application/x-www-form-urlencoded</code> — Express reads it via <code>req.body</code>.)
-    </p>
-</section>
+        <!-- Summary (dummy numbers for now) -->
+        <div class="card">
+            <h2>Summary</h2>
+            <div class="summary-row">
+                <span>Net Profit</span><span>8,250</span>
+            </div>
+            <div class="summary-row">
+                <span>Last Date</span><span>2023-09-01</span>
+            </div>
+            <div class="summary-row">
+                <span>Signals in Test</span><span>200</span>
+            </div>
+            <div class="summary-row">
+                <span>Trades</span><span>15</span>
+            </div>
+            <div class="summary-row">
+                <span>Total Return %</span><span>8.25</span>
+            </div>
+            <p class="helper">
+                (Later you can populate these from your Node/Java backtester.)
+            </p>
+        </div>
 
-<section>
-    <h2>Upload Your CSV File</h2>
-    <form method="POST" action="/upload" enctype="multipart/form-data">
-        <input type="file" name="myfile" accept=".csv" required>
-        <button type="submit">Upload</button>
-    </form>
-    <p style="font-size:0.9rem; color:#555;">
-        (This form uses <code>multipart/form-data</code> — handled by Multer to accept CSV files.)
-    </p>
-</section>
+        <!-- Run Backtest (form POST) -->
+        <div class="card">
+            <h2>Run Backtest (Form POST)</h2>
+            <p style="font-size:0.85rem; color:#9ca3af;">
+                This sends a form body to <code>/backtest/run</code> and is read via <code>req.body</code>.
+            </p>
+            <form method="POST" action="/backtest/run">
+                <div class="form-row">
+                    <label>
+                        Fast MovingAvg
+                        <input type="number" name="fast" min="1" value="3" required>
+                    </label>
+                    <label>
+                        Slow MovingAvg
+                        <input type="number" name="slow" min="2" value="5" required>
+                    </label>
+                </div>
+                <button type="submit" class="btn-secondary">Run Backtest</button>
+            </form>
+        </div>
 
+        <!-- Upload CSV -->
+        <div class="card">
+            <h2>Upload Your CSV File</h2>
+            <form method="POST" action="/upload" enctype="multipart/form-data">
+                <div class="upload-box">
+                    <input type="file" name="myfile" accept=".csv" required>
+                </div>
+                <button type="submit" class="btn-secondary" style="margin-top:0.75rem;">
+                    Upload
+                </button>
+            </form>
+            <p class="helper">
+                (Handled by Multer using <code>multipart/form-data</code>.)
+            </p>
+        </div>
+
+        <!-- Backtest Results with chart -->
+        <div class="card">
+            <h2>Backtest Results</h2>
+            <div class="detail-grid">
+                <span>Fast MovingAvg</span><span>3</span>
+                <span>Slow MovingAvg</span><span>5</span>
+            </div>
+            <p style="margin-top:0.75rem; font-size:0.85rem; color:#9ca3af;">
+                Example equity curve (dummy data for now):
+            </p>
+            <canvas id="equityChart" height="140"></canvas>
+        </div>
+    </section>
+</main>
+
+<!-- Chart.js CDN -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
 <script>
+    // ---------- AJAX Preview (same logic you had) ----------
     const btn = document.getElementById('previewBtn');
     const output = document.getElementById('previewResult');
-    // when the user will press preview btn then this code will run
+
     btn.addEventListener('click', async () => {
-        const fast = document.getElementById('fastAjax').value; // getting the input from browser
+        const fast = document.getElementById('fastAjax').value;
         const slow = document.getElementById('slowAjax').value;
 
         output.textContent = 'Checking...';
@@ -81,19 +140,48 @@
             const res = await fetch('/api/backtest-preview', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ fast, slow }) // sending the input value to server in Json form
+                body: JSON.stringify({ fast, slow })
             });
 
-            const data = await res.json(); // Handle the server’s json response in the browser
+            const data = await res.json();
             if (!res.ok || !data.ok) {
-                output.innerHTML = `<span style="color:#b00020;">${data.message || 'Invalid parameters'}</span>`;
+                output.innerHTML = `<span style="color:#f97373;">${data.message || 'Invalid parameters'}</span>`;
                 return;
             }
-            output.innerHTML = `<b>Valid!</b> Fast = ${data.fast}, Slow = ${data.slow}<br>${data.note}`;}
-        catch (e) {
-            output.innerHTML = `<span style="color:#b00020;">Network error.</span>`;
+            output.innerHTML = `<b>Valid!</b> Fast = ${data.fast}, Slow = ${data.slow}<br>${data.note}`;
+        } catch (e) {
+            output.innerHTML = `<span style="color:#f97373;">Network error.</span>`;
         }
     });
+
+    // ---------- Backtest Results Chart (dummy data for now) ----------
+    const ctx = document.getElementById('equityChart');
+    if (ctx) {
+        const years = [2010, 2012, 2014, 2016, 2018, 2020];
+        const equity = [2000, 3500, 4200, 6000, 7200, 8250];
+
+        new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: years,
+                datasets: [{
+                    label: 'Equity Curve',
+                    data: equity,
+                    borderWidth: 2,
+                    tension: 0.3,
+                    pointRadius: 0,
+                    fill: false
+                }]
+            },
+            options: {
+                plugins: { legend: { display: false } },
+                scales: {
+                    x: { grid: { display: false } },
+                    y: { grid: { color: 'rgba(55,65,81,0.4)' } }
+                }
+            }
+        });
+    }
 </script>
 
 </body>

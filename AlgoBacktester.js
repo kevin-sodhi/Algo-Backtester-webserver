@@ -11,13 +11,22 @@ const PORT = 3000;
 const multiparty = require('multiparty');
 const fs = require('fs');
 app.use(express.json()); // for AJAX
+
 const { spawn } = require('child_process');
-// nunjucks implimentation
+
+// nunjucks Template implimentation
 const nunjucks = require('nunjucks');
-nunjucks.configure('views', { autoescape: true, express: app });
+nunjucks.configure('views', { autoescape: true, express: app }); // 
 app.set('view engine', 'njk');
 
-//---------------INTEGRATING JAVA WITH NODE.JS-------------------------
+//---------------!!!!!INTEGRATING ALGO BACKTESTER JAVA WITH NODE.JS!!!!!-------------------------
+//                          NOT RELATED TO COURSE
+/*
+        “This section sets up the Node–Java integration.
+        It defines where my CSV data and Java backtester live, checks that they exist,
+        and ensures there’s always a valid CSV path to run the algorithm.
+        Essentially, it’s the backbone that lets my Node.js server execute the Java JAR and feed it data safely.”
+ */
 const FILES_DIR = require('path').resolve(__dirname, '..', 'data'); // where files live
 const JAR_PATH = require('path').resolve(
     __dirname,
@@ -28,24 +37,26 @@ const JAR_PATH = require('path').resolve(
 );
 console.log('[INFO] JAR_PATH:', JAR_PATH);
 console.log('[INFO] FILES_DIR:', FILES_DIR);
-
-
+// These console.log can verify that Node.js is pointing to the correct folders when the server is started.
+// fs.existsSync() checks whether a file exists on disk.
 if (!fs.existsSync(JAR_PATH)) {
     console.warn('[WARN] Backtester JAR not found at:', JAR_PATH);
 } else {
     console.log('[OK] Found backtester JAR at:', JAR_PATH);
 }
 
+
 function resolveCsvPath() {  //Choose CSV: prefer last uploaded, else sample.csv in /public
-    if (uploadedFile?.path) return uploadedFile.path;
-    return path.join(FILES_DIR, 'sample.csv');
+    if (uploadedFile?.path) return uploadedFile.path; // If uploadedFile exists and has a .path property, return the path.
+    return path.join(FILES_DIR, 'TSLA.csv'); // Otherwise, default to  TSLA.csv:
 }
-// ensure folder exists
+
+// ensure data folder exists.   // If it doesn’t, mkdirSync() creates it with recursive: true so even parent folders get created if missing to prevent crash when user upload files
 if (!fs.existsSync(FILES_DIR)) fs.mkdirSync(FILES_DIR, { recursive: true });
-// global variable to track uploads
-// let uploadedFile = null;
+
 function runJavaBacktester({ csv, fast, slow, strategy = 'macrossover' }) {
     return new Promise((resolve, reject) => {
+        // This array "args" represents the command-line arguments to run in JAR.
         const args = [
             '-jar', JAR_PATH,
             '--csv', csv,
@@ -53,14 +64,18 @@ function runJavaBacktester({ csv, fast, slow, strategy = 'macrossover' }) {
             '--slow', String(slow),
             '--strategy', strategy
         ];
-
+        // spawn() starts a new child process running  Java command.
         const child = spawn('java', args, { stdio: ['ignore', 'pipe', 'pipe'] });
-        let stdout = '', stderr = '';
 
-        child.stdout.on('data', b => stdout += b.toString());
-        child.stderr.on('data', b => stderr += b.toString());
+        let stdout = ''; // Capture standard output (stdout) → where Java prints results.
+        let stderr = ''; // Capture standard error (stderr) → where Java prints errors/logs.
+        
+        // These event listeners trigger whenever the Java process writes data.
+        child.stdout.on('data', b => stdout += b.toString()); // child.stdout gives you what Java printed with System.out.println()
+        child.stderr.on('data', b => stderr += b.toString()); // child.stderr gives you what Java printed with System.err.println()
 
         child.on('close', code => {
+            // If the Java program didn’t exit cleanly, reject the Promise with an error containing Java’s error messages.
             if (code !== 0) return reject(new Error(`Java exited ${code}: ${stderr}`));
 
             try {
@@ -76,7 +91,18 @@ function runJavaBacktester({ csv, fast, slow, strategy = 'macrossover' }) {
         });
     });
 }
+//---------------^^^^INTEGRATING ALGO BACKTESTER JAVA WITH NODE.JS^^^^^-------------------------
 
+// Querystring parameters
+// to http://localhost:3000/backtest/run?fast=5&slow=20  fast/slow = MOVING Average Trading in stock stratergie
+/*
+I am doing these querystring as integers because In Algorithmic Backtester, these fast and slow values represent:
+Moving average window sizes (e.g. 5-day vs 20-day) They’re used in math calculations
+If I don’t convert them to integers, the algorithm would break or give wrong results
+because it would be trying to do math with strings, not numbers.
+ */
+
+// NUNJUCKS implimented render
 app.get('/backtest/run', async (req, res) => {
     try {
         const fast = parseInt(req.query.fast || '5', 10);
@@ -92,21 +118,54 @@ app.get('/backtest/run', async (req, res) => {
         const csv = resolveCsvPath();
         const result = await runJavaBacktester({ csv, fast, slow, strategy: 'macrossover' });
 
-        // compute a few display helpers (same as before)
-        const m = result?.metrics || {};
-        const series = Array.isArray(result?.series) ? result.series : [];
+        // when JAVA ENGINE RUNS it outputs teh json metrics like this 
+/**
+         {
+                "metrics": {       // overall statistics (trades, total return, etc.)
+                    "barsRead": 300,
+                    "trades": 6,
+                    "totalReturnPct": 12.75
+                },
+
+                "series": [.  //  time-series of daily (or weekly) data points.
+                    { "date": "2024-01-01", "close": 105, "smaFast": 100, "smaSlow": 102 },
+                    { "date": "2024-01-02", "close": 107, "smaFast": 101, "smaSlow": 103 },
+                    ...
+                    { "date": "2024-06-30", "close": 130, "smaFast": 125, "smaSlow": 120 }
+                ],
+
+                "signals": [...]. // buy/sell signal events.
+                }
+*/
+        /**
+         *  This loop scans the series data from the Java output starting from the end,
+            finds the most recent date and the last computed SMA values for fast and slow averages,
+            and stores them so we can display a summary of the latest backtest state on the Nunjucks results page.
+            It’s efficient way to always show the freshest computed data.
+         */
+        const m = result?.metrics || {};  // m holds the metrics from java
+        const series = Array.isArray(result?.series) ? result.series : []; // series becomes your full list of rows from Java, or empty if none exist
         let lastFast = 'N/A', lastSlow = 'N/A', lastDate = 'N/A';
         for (let i = series.length - 1; i >= 0; i--) {
             const row = series[i];
-            if (row?.date) lastDate = row.date;
-            if (row?.smaFast !== undefined || row?.smaSlow !== undefined) {
+            if (row?.date) lastDate = row.date; // If the row has a date, update lastDate.
+            if (row?.smaFast !== undefined || row?.smaSlow !== undefined) { // Checking if the row has moving average values.
+                //If it does, record them:
                 if (row?.smaFast !== undefined) lastFast = row.smaFast;
                 if (row?.smaSlow !== undefined) lastSlow = row.smaSlow;
+                //once find the most recent valid row, stop — no need to keep looping backward.
                 break;
             }
         }
 
-        res.render('backtest-results.njk', {
+        // After the above loop finishes, we have something like below that will pass to nunjucks
+        /**
+         *  lastDate = "2024-06-30"
+            lastFast = 125
+            lastSlow = 120
+         */
+        // These are used for the summary table on the results page.”
+        res.render('backtest-results.njk', {    // Use the Nunjucks template backtest-results.njk 
             title: 'Backtest Results',
             params: { csv, fast, slow },
             metrics: {
@@ -128,9 +187,6 @@ app.get('/backtest/run', async (req, res) => {
     }
 });
 
-
-
-
 // --- 2. Middleware --------------------------------------------
 
 // Middleware for static files and URL encoded
@@ -145,7 +201,45 @@ app.use(express.urlencoded({ extended: true }));
 app.get('/', (req, res) => {
     res.sendFile(path.join(__dirname, 'public', 'index.html'));
 });
-
+// Querystring parameters
+app.get('/backtest', (req, res) =>{
+    const fast = parseInt(req.query.fast || '3', 10);  // default = 3  and radix = 10 means base 10 decimal (comp ARC concept)
+    const slow = parseInt(req.query.slow || '5', 10);  // default = 5
+    if (!Number.isFinite(fast) || !Number.isFinite(slow) || fast <= 0 || slow <= 0 || fast >= slow) {
+        return res.status(400).send(`
+            <h1>Invalid parameters</h1>
+            <p>Please use the format: <b>/backtest?fast=3&slow=5</b></p>
+            <p>Ensure both are positive numbers and fast &lt; slow.</p>
+            <a href="/">Home</a>
+            `);
+    }
+    res.send(`<h1>Backtest Parameters</h1>
+                   <p><b>Fast Moving Average (MA):</b> ${fast}</p>
+                   <p><b>Slow Moving Average (MA):</b> ${slow}</p>
+            <p>These values will later feed into the moving average strategy.</p>
+            <a href="/">Home</a>
+  `);
+});
+// 4) Handle information from http-bodies (url-encoded, or general form-data through a body-parser
+app.post('/backtest', (req, res) => {
+    const fast = parseInt(req.body.fast || '3', 10);
+    const slow = parseInt(req.body.slow || '5', 10);
+    if (!Number.isFinite(fast) || !Number.isFinite(slow) || fast <= 0 || slow <= 0 || fast >= slow) {
+        return res.status(400).send(`
+      <h1>Invalid parameters</h1>
+      <p>Submit positive integers with fast &lt; slow.</p>
+      <a href="/">Home</a>
+    `);
+    }
+    // For just Now, (algorithm wiring comes later)
+    res.send(`
+    <h1>Backtest (POST body received)</h1>
+    <p><b>Fast MA:</b> ${fast}</p>
+    <p><b>Slow MA:</b> ${slow}</p>
+    <p>Parsed from req.body using urlencoded parser.</p>
+    <a href="/">Home</a>
+  `);
+});
 // downloading the CSV data files using URl
 
 // we used this sanitize so users can’t trick the server into loading dangerous paths like
@@ -196,130 +290,50 @@ app.get('/dataset/:symbol', (req, res) => {
   `);
 });
 
-// Querystring parameters
-// to http://localhost:3000/backtest?fast=5&slow=20  fast/slow = MOVING Average Trading in stock stratergie
-/*
-I am doing these querystring as integers because In Algorithmic Backtester, these fast and slow values represent:
-Moving average window sizes (e.g. 5-day vs 20-day) They’re used in math calculations
-If I don’t convert them to integers, the algorithm would break or give wrong results
-because it would be trying to do math with strings, not numbers.
- */
+app.post('/backtest/run', async (req, res) => {
+  const fast = parseInt(req.body.fast || '5', 10);
+  const slow = parseInt(req.body.slow || '20', 10);
 
-/*
-app.get('/backtest', (req, res) =>{
-    const fast = parseInt(req.query.fast || '3', 10);  // default = 3  and radix = 10 means base 10 decimal (comp ARC concept)
-    const slow = parseInt(req.query.slow || '5', 10);  // default = 5
-    if (!Number.isFinite(fast) || !Number.isFinite(slow) || fast <= 0 || slow <= 0 || fast >= slow) {
-        return res.status(400).send(`
-            <h1>Invalid parameters</h1>
-            <p>Please use the format: <b>/backtest?fast=3&slow=5</b></p>
-            <p>Ensure both are positive numbers and fast &lt; slow.</p>
-            <a href="/">Home</a>
-            `);
+  if (!Number.isFinite(fast) || !Number.isFinite(slow) || fast <= 0 || slow <= 0 || fast >= slow) {
+    return res.status(400).render('error.njk', {
+      title: 'Invalid Parameters',
+      code: 400,
+      message: 'Submit positive integers with fast < slow.'
+    });
+  }
+
+  // Reuse the same logic you have in GET:
+  const csv = resolveCsvPath();
+  const result = await runJavaBacktester({ csv, fast, slow, strategy: 'macrossover' });
+
+  // derive display helpers (same block you already have)
+  const m = result?.metrics || {};
+  const series = Array.isArray(result?.series) ? result.series : [];
+  let lastFast = 'N/A', lastSlow = 'N/A', lastDate = 'N/A';
+  for (let i = series.length - 1; i >= 0; i--) {
+    const row = series[i];
+    if (row?.date) lastDate = row.date;
+    if (row?.smaFast !== undefined || row?.smaSlow !== undefined) {
+      if (row?.smaFast !== undefined) lastFast = row.smaFast;
+      if (row?.smaSlow !== undefined) lastSlow = row.smaSlow;
+      break;
     }
-    res.send(`<h1>Backtest Parameters</h1>
-                   <p><b>Fast Moving Average (MA):</b> ${fast}</p>
-                   <p><b>Slow Moving Average (MA):</b> ${slow}</p>
-            <p>These values will later feed into the moving average strategy.</p>
-            <a href="/">Home</a>
-  `);
-});
-*/
-/*  ===== DISABLE OLD /backtest ROUTES =====
-app.post('/backtest', async (req, res) => {
-    const fast = parseInt(req.body.fast || '3', 10);
-    const slow = parseInt(req.body.slow || '5', 10);
+  }
 
-    if (!Number.isFinite(fast) || !Number.isFinite(slow) || fast <= 0 || slow <= 0 || fast >= slow) {
-        return res.status(400).send('<h1>Invalid parameters</h1><a href="/">Back</a>');
-    }
-
-    const csv = resolveCsvPath();
-
-    try {
-        const result = await runJavaBacktester({ csv, fast, slow });
-        const html = renderResultsHTML({ csv, fast, slow }, result);
-        res.send(html);
-    } catch (err) {
-        console.error('Backtest failed:', err.message);
-        res.status(500).send(`<h1>Backtest Error</h1><p>${err.message}</p><a href="/">Back</a>`);
-    }
+  return res.render('backtest-results.njk', {
+    title: 'Backtest Results',
+    params: { csv, fast, slow },
+    metrics: {
+      barsRead: m.barsRead ?? 'N/A',
+      trades: m.trades ?? 'N/A',
+      totalReturnPct: m.totalReturnPct ?? 'N/A',
+      lastDate, lastFast, lastSlow
+    },
+    signals: Array.isArray(result?.signals) ? result.signals : [],
+    rawJson: JSON.stringify(result, null, 2)
+  });
 });
 
-// 4) Handle information from http-bodies (url-encoded, or general form-data through a body-parser
-app.post('/backtest', (req, res) => {
-    const fast = parseInt(req.body.fast || '3', 10);
-    const slow = parseInt(req.body.slow || '5', 10);
-    if (!Number.isFinite(fast) || !Number.isFinite(slow) || fast <= 0 || slow <= 0 || fast >= slow) {
-        return res.status(400).send(`
-      <h1>Invalid parameters</h1>
-      <p>Submit positive integers with fast &lt; slow.</p>
-      <a href="/">Home</a>
-    `);
-    }
-    // For just Now, (algorithm wiring comes later)
-    res.send(`
-    <h1>Backtest (POST body received)</h1>
-    <p><b>Fast MA:</b> ${fast}</p>
-    <p><b>Slow MA:</b> ${slow}</p>
-    <p>Parsed from req.body using urlencoded parser.</p>
-    <a href="/">Home</a>
-  `);
-});
-===== END DISABLE ===== */
-
-// for NUNJUCKS
-app.post('/backtest', async (req, res) => {
-    const fast = parseInt(req.body.fast || '3', 10);
-    const slow = parseInt(req.body.slow || '5', 10);
-
-    if (!Number.isFinite(fast) || !Number.isFinite(slow) || fast <= 0 || slow <= 0 || fast >= slow) {
-        return res.status(400).render('error.njk', {
-            title: 'Invalid Parameters',
-            code: 400,
-            message: 'Submit positive integers with fast < slow.'
-        });
-    }
-
-    const csv = resolveCsvPath();
-
-    try {
-        const result = await runJavaBacktester({ csv, fast, slow, strategy: 'macrossover' });
-
-        const m = result?.metrics || {};
-        const series = Array.isArray(result?.series) ? result.series : [];
-        let lastFast = 'N/A', lastSlow = 'N/A', lastDate = 'N/A';
-        for (let i = series.length - 1; i >= 0; i--) {
-            const row = series[i];
-            if (row?.date) lastDate = row.date;
-            if (row?.smaFast !== undefined || row?.smaSlow !== undefined) {
-                if (row?.smaFast !== undefined) lastFast = row.smaFast;
-                if (row?.smaSlow !== undefined) lastSlow = row.smaSlow;
-                break;
-            }
-        }
-
-        return res.render('backtest-results.njk', {
-            title: 'Backtest Results',
-            params: { csv, fast, slow },
-            metrics: {
-                barsRead: m.barsRead ?? 'N/A',
-                trades: m.trades ?? 'N/A',
-                totalReturnPct: m.totalReturnPct ?? 'N/A',
-                lastDate, lastFast, lastSlow
-            },
-            signals: Array.isArray(result?.signals) ? result.signals : [],
-            rawJson: JSON.stringify(result, null, 2)
-        });
-    } catch (err) {
-        console.error('Backtest failed:', err.message);
-        return res.status(500).render('error.njk', {
-            title: 'Backtest Error',
-            code: 500,
-            message: err.message
-        });
-    }
-});
 
 // 6) B. Upload files via multiparty
 const fields = {}; // Stores any text fields (non-file inputs) that come along with the upload.
