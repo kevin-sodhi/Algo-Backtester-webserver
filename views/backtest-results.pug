@@ -1,0 +1,141 @@
+extends base
+include partials/macros
+
+block content
+  .backtest-container
+    h1 #{title}
+
+    .backtest-meta
+      p
+        span.label CSV:
+        span.value #{params.csv}
+      p
+        span.label Fast MA:
+        span.value #{params.fast}
+        span.separator |
+        span.label Slow MA:
+        span.value #{params.slow}
+
+    .card.signals-card
+        h3 Signals
+
+        // chart area
+        .signals-chart-wrapper
+          canvas#signalsChart(width="400" height="260")
+
+        // existing JSON/text view
+        include partials/signals
+
+    .backtest-grid
+      .card
+        h3 Summary
+        table.metrics-table(style="margin:0 auto; border-collapse:collapse; min-width:360px;")
+          tbody
+            +metricsRow("Bars Read", metrics.barsRead)
+            +metricsRow("Last Date", metrics.lastDate)
+            +metricsRow("SMA Fast (last)", metrics.lastFast)
+            +metricsRow("SMA Slow (last)", metrics.lastSlow)
+            +metricsRow("Trades", metrics.trades)
+            +metricsRow("Total Return %", metrics.totalReturnPct)
+
+    p.back-link
+      a(href="/") ← Home
+
+
+
+
+  // --- Trading signals chart ---
+  script(src="https://cdn.jsdelivr.net/npm/chart.js")
+
+  script.
+    (function () {
+      // signals is already available (we use it in partials/signals)
+      const signals = !{JSON.stringify(signals || [])};
+
+      if (!signals.length) return;
+
+      const labels = signals.map(s => s.date);
+      const prices = signals.map(s => Number(s.price));
+
+      // Separate BUY and SELL so we can color them differently
+      const buyPoints = signals.map(s => s.type === 'BUY' ? Number(s.price) : null);
+      const sellPoints = signals.map(s => s.type === 'SELL' ? Number(s.price) : null);
+
+      const canvas = document.getElementById('signalsChart');
+      if (!canvas) return;
+
+      const ctx = canvas.getContext('2d');
+
+      new Chart(ctx, {
+        type: 'line',
+        data: {
+          labels,
+          datasets: [
+            {
+              label: 'Price',
+              data: prices,
+              borderWidth: 2,
+              borderColor: 'rgba(255, 255, 255, 0.9)',   // blue/purple
+              tension: 0.35,
+              pointRadius: 0,                             // smooth line
+            },
+            {
+              label: 'BUY',
+              data: buyPoints,
+              borderWidth: 0,
+              pointRadius: 6,
+              pointHoverRadius: 7,
+              showLine: false,
+              backgroundColor: 'rgba(14, 240, 97, 1)',    // green
+            },
+            {
+              label: 'SELL',
+              data: sellPoints,
+              borderWidth: 0,
+              pointRadius: 6,
+              pointHoverRadius: 7,
+              showLine: false,
+              backgroundColor: 'rgba(201, 19, 19, 1)',    // red
+            }
+          ]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: {
+            legend: {
+              labels: {
+                color: '#f3f5f8ff',
+                font: { size: 11 }
+              }
+            },
+            tooltip: {
+              callbacks: {
+                label(ctx) {
+                  const p = ctx.parsed.y;
+                  const label = ctx.dataset.label || '';
+                  return `${label}: ${p?.toFixed ? p.toFixed(2) : p}`;
+                }
+              }
+            }
+          },
+          scales: {
+            x: {
+              ticks: {
+                color: '#9ca3af',
+                maxRotation: 0,
+                font: { size: 10 }
+              },
+              grid: { color: 'rgba(148,163,184,0.15)' }
+            },
+            y: {
+              ticks: {
+                color: '#9ca3af',
+                font: { size: 10 }
+              },
+              grid: { color: 'rgba(117, 119, 122, 0.18)' }
+            }
+          }
+        }
+      });
+    })();

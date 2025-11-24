@@ -1,0 +1,49 @@
+extends base
+
+block content
+  section.hero-landing
+    video.bg-video(autoplay loop muted playsinline)
+      source(src="/public/login-bg.mp4" type="video/mp4")
+
+    .hero-overlay
+      .hero-nav-row
+        .hero-logo-row
+          span.logo-mark A
+          span.app-name Algo Backtester
+        .hero-nav-actions
+          a.hero-nav-link(href="/old-home") Home
+          a.hero-nav-link(href="/backtest/run?fast=5&slow=20") Backtest
+          a.hero-nav-link(href="/dataset/TSLA") Dataset
+          a.hero-nav-link(href="/files/sample.csv") Download CSV
+          a.hero-nav-link(href="/login") Log in
+          a.hero-nav-cta(href="/signup") Sign up
+
+      .hero-main
+        .hero-copy
+          h1.hero-title Your Money.
+            br
+            | Your Move.
+          p.hero-subtitle
+            | You expect more from yourself.
+            br
+            | Expect more from your money.
+          a.hero-cta(href="/signup") Get started
+
+        // RIGHT SIDE: LOGIN CARD
+        .login-card
+          h2 Log In
+
+          form(method="POST" action="/login")
+            label
+              span Email
+              input(type="email" name="email" required placeholder="you@example.com")
+
+            label
+              span Password
+              input(type="password" name="password" required placeholder="••••••••")
+
+            button(type="submit") Log in
+
+          p(style="font-size:0.8rem; margin-top:0.75rem; color:#9ca3af;")
+            | New here?
+            a(href="/signup")  Create an account

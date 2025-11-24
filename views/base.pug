@@ -1,0 +1,23 @@
+doctype html
+html(lang="en")
+  head
+    meta(charset="UTF-8")
+    title= title || 'Algo Backtester'
+    link(rel="stylesheet", href="/public/style.css")
+
+  body(class=pageClass)
+    // Only show top bar on normal pages, not login/signup
+    if !hideNav
+      header.hero
+        img(src="/public/StockMarket.png", alt="Logo", width="120")
+        h1 Algo Backtester
+
+      nav.nav
+        a(href="/old-home") Home
+        a.primary(href="/files/sample.csv") Download Sample CSV
+        a(href="/dataset/TSLA") Dataset (Route Parameter)
+        a(href="/backtest?fast=5&slow=20") Backtest (Query Params)
+        a(href="/backtest/run?fast=5&slow=20") Backtest (Templated)
+
+    section
+      block content

@@ -1,8 +1,0 @@
-{% macro metricsRow(label, value) -%}
-<tr>
-  <td style="border:1px solid #eee;padding:6px;">{{ label }}</td>
-  <td style="border:1px solid #eee;padding:6px;text-align:right;">
-    {{ value if value !== undefined and value !== null and value !== '' else 'N/A' }}
-  </td>
-</tr>
-{%- endmacro %}

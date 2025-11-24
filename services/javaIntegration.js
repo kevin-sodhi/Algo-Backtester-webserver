@@ -32,8 +32,7 @@ function resolveCsvPath(uploadedFile) {
 }
 
 function runJavaBacktester({ csv, fast, slow, strategy = 'macrossover' }) {
-  return new Promise((resolve, reject) => {
-    const args = [
+  return new Promise((resolve, reject) => { const args = [
       '-jar',
       JAR_PATH,
       '--csv',
@@ -48,9 +47,10 @@ function runJavaBacktester({ csv, fast, slow, strategy = 'macrossover' }) {
 
     const child = spawn('java', args, { stdio: ['ignore', 'pipe', 'pipe'] });
 
-    let stdout = '';
-    let stderr = '';
+    let stdout = ''; // normal output
+    let stderr = ''; // error output
 
+    // Java sends data in chunks, not all at once, so we accumulate them.
     child.stdout.on('data', (b) => (stdout += b.toString()));
     child.stderr.on('data', (b) => (stderr += b.toString()));
 

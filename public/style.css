@@ -1,215 +1,642 @@
-/* Global layout */
+/* =========================================================
+   GLOBAL LAYOUT & TYPOGRAPHY
+   - Applies to the whole site (all pages)
+   ========================================================= */
+
 body {
-    margin: 0;
-    font-family: system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
-    background: #0a0a0a;
-    color: #ffffff;
+  margin: 0;
+  font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  background: #0b0b0b;  /* Dark background for app */
+  color: #ffffff;       /* Default text color */
 }
 
-/* Top bar */
+/* =========================================================
+   TOP BAR / MAIN NAVIGATION (USED ON NORMAL PAGES)
+   - The black bar with logo + links on non-login pages
+   ========================================================= */
+
 .topbar {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    padding: 1rem 3rem;
-    background: #020203;
-    border-bottom: 1px solid #1f2937;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 1rem 3rem;
+  background: #060606;
+  border-bottom: 1px solid #1f2937;
 }
 
 .logo-row {
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
 }
 
 .logo-row img {
-    width: 32px;
-    height: 32px;
+  width: 32px;
+  height: 32px;
 }
 
 .app-name {
-    font-size: 1.25rem;
-    font-weight: 600;
+  font-size: 1.25rem;
+  font-weight: 600;
 }
 
+/* Right-side nav in the topbar */
 .main-nav {
-    display: flex;
-    gap: 1.5rem;
+  display: flex;
+  gap: 1.5rem;
 }
 
 .main-nav a {
-    text-decoration: none;
-    color: #9ca3af;
-    font-size: 0.95rem;
+  text-decoration: none;
+  color: #9ca3af;
+  font-size: 0.95rem;
 }
 
 .main-nav a:hover,
 .main-nav a.active {
-    color: #e5e7eb;
+  color: #e5e7eb;
 }
 
-/* Main layout */
+/* Old route links under header on some pages */
+nav.nav {
+  display: flex;
+  justify-content: center;
+  gap: 1rem;
+  margin: 0 0 1rem;
+}
+
+nav.nav a {
+  color: #ffffff;
+  text-decoration: none;
+}
+
+nav.nav a.primary {
+  font-weight: 600;
+}
+
+/* =========================================================
+   PAGE CONTAINERS / LAYOUT HELPERS
+   - Used for standard content layouts (home, backtest, etc)
+   ========================================================= */
+
 .layout {
-    padding: 1.5rem 3rem 3rem;
+  padding: 1.5rem 3rem 3rem;
 }
 
 .welcome-title {
-    font-size: 1.6rem;
-    margin: 0 0 0.4rem;
+  font-size: 1.6rem;
+  margin: 0 0 0.4rem;
 }
 
 .welcome-text {
-    margin: 0;
-    color: #9ca3af;
+  margin: 0;
+  color: #9ca3af;
 }
 
-/* Grid of cards */
+/* Home/dashboard layout grid */
 .dashboard-grid {
-    margin-top: 1.5rem;
-    display: grid;
-    grid-template-columns: minmax(0, 1.4fr) minmax(0, 1fr);
-    grid-auto-rows: minmax(0, auto);
-    gap: 1.25rem;
+  margin-top: 1.5rem;
+  display: grid;
+  grid-template-columns: minmax(0, 1.4fr) minmax(0, 1fr);
+  grid-auto-rows: minmax(0, auto);
+  gap: 1.25rem;
 }
+
+/* =========================================================
+   BACKTEST PAGE-SPECIFIC STYLES
+   - Used on the backtest results / forms pages
+   ========================================================= */
+
+.backtest-page .hero img {
+  display: none;
+}
+
+.backtest-page .nav {
+  text-align: center;
+}
+
+.backtest-container {
+  background: #220236;
+  padding: 1.5rem;
+  border-radius: 12px;
+}
+
+.backtest-container h1 {
+  text-align: center;
+  margin-top: 0;
+}
+
+.backtest-meta {
+  margin-bottom: 0rem;
+}
+
+.backtest-page {
+    min-height: 100vh;
+    background: radial-gradient(circle at top, #0a0f24 0%, #05070e 60%, #000000 100%);
+    padding: 2rem 3rem;
+    color: #e5e7eb;
+}
+
+/* Grid of summary cards on backtest page */
+.backtest-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+  gap: 1rem;
+}
+
+.backtest-grid .card {
+  margin: 10px;
+}
+
+.backtest-container {
+    background: radial-gradient(circle at top left, #020617 0%, #020617 40%, #020617 100%);
+    border: 1px solid rgba(148, 163, 184, 0.25);
+    padding: 2rem;
+    border-radius: 22px;
+    backdrop-filter: blur(18px);
+    -webkit-backdrop-filter: blur(18px);
+    box-shadow: 0 22px 60px rgba(15, 23, 42, 0.9);
+}
+
+.backtest-grid .card {
+    background: rgba(15, 23, 42, 0.95);   /* deeper blue, less flat grey */
+    border: 1px solid rgba(148, 163, 184, 0.35);
+    padding: 1.5rem;
+    border-radius: 18px;
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+}
+
+/* Backtest summary table */
+.backtest-container table {
+    border-collapse: collapse;
+    margin-top: 1rem;
+    font-size: 0.9rem;
+    color: #e5e7eb;
+}
+
+.backtest-container td {
+    padding: 8px 14px;
+    border: 1px solid rgba(148, 163, 184, 0.4);
+}
+
+.backtest-container tr:nth-child(even) {
+    background: rgba(15, 23, 42, 0.85);
+}
+
+/*signal card in backtest run*/
+.signals-chart-wrapper {
+  margin-bottom: 1rem;
+  height: 260px;
+}
+
+#signalsChart {
+  width: 100%;
+  height: 100%;
+}
+
+.signals-card {
+  position: relative;
+}
+
+ /* bullet Points for signal */
+
+.signals-list {
+  margin: 0;
+  padding-left: 1.2rem;        /* bullet indent */
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  font-size: 0.85rem;
+  color: #e5e7eb;
+}
+
+.signals-list li::marker {
+  color: #6366f1;               /* bullet color */
+}
+
+.signal-type {
+  font-weight: 600;
+  margin-right: 0.25rem;
+}
+
+.signal-type.signal-buy {
+  color: #22c55e;               /* green for BUY */
+}
+
+.signal-type.signal-sell {
+  color: #ef4444;               /* red for SELL */
+}
+
+.signal-price {
+  font-variant-numeric: tabular-nums;
+}
+
+.signal-date {
+  color: #9ca3af;
+}
+
+
+/* =========================================================
+   CARD COMPONENTS
+   - Reusable dark cards used across pages
+   ========================================================= */
 
 .card {
-    background: #020617;
-    border-radius: 18px;
-    padding: 1.25rem 1.5rem;
-    border: 1px solid #1f2937;
-    box-shadow: 0 18px 40px rgba(15, 23, 42, 0.8);
+  background: #000624;
+  border-radius: 18px;
+  padding: 1.25rem 1.5rem;
+  border: 1px solid #1f2937;
+  box-shadow: 0 18px 40px rgba(15, 23, 42, 0.8);
 }
 
 .card h2 {
-    margin: 0 0 0.75rem;
-    font-size: 1rem;
+  margin: 0 0 0.75rem;
+  font-size: 1rem;
 }
 
 .card p {
-    margin: 0.25rem 0;
-    font-size: 0.9rem;
+  margin: 0.25rem 0;
+  font-size: 0.9rem;
 }
 
-/* Form rows */
+/* =========================================================
+   FORMS (INPUTS / LABELS)
+   - Used for backtest parameters, file uploads, etc.
+   ========================================================= */
+
 .form-row {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 0.75rem;
-    margin-bottom: 1rem;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  margin-bottom: 1rem;
 }
 
 label {
-    display: flex;
-    flex-direction: column;
-    font-size: 0.8rem;
-    color: #9ca3af;
+  display: flex;
+  flex-direction: column;
+  font-size: 0.8rem;
+  color: #9ca3af;
 }
 
+/* Numeric inputs and file inputs */
 input[type="number"],
-input[type="file"] {
-    margin-top: 0.25rem;
-    padding: 0.45rem 0.6rem;
-    border-radius: 10px;
-    border: 1px solid #1f2937;
-    background: #020617;
-    color: #e5e7eb;
-    outline: none;
+input[type="file"],
+input[type="email"],
+input[type="password"],
+input[type="text"] {
+  margin-top: 0.25rem;
+  padding: 0.45rem 0.6rem;
+  border-radius: 10px;
+  border: 1px solid #1f2937;
+  background: #020617;
+  color: #e5e7eb;
+  outline: none;
 }
 
 input[type="number"]:focus,
-input[type="file"]:focus {
-    border-color: #3b82f6;
+input[type="file"]:focus,
+input[type="email"]:focus,
+input[type="password"]:focus,
+input[type="text"]:focus {
+  border-color: #3b82f6;
 }
 
-/* Buttons */
+/* =========================================================
+   BUTTONS
+   - Primary and secondary button styles
+   ========================================================= */
+
 button,
 .btn-primary {
-    cursor: pointer;
+  cursor: pointer;
 }
 
 .btn-primary {
-    width: 100%;
-    padding: 0.6rem 1rem;
-    border-radius: 999px;
-    border: none;
-    background: #3b82f6;
-    color: white;
-    font-weight: 600;
-    margin-top: 0.25rem;
+  width: 100%;
+  padding: 0.6rem 1rem;
+  border-radius: 999px;
+  border: none;
+  background: #3b82f6;
+  color: white;
+  font-weight: 600;
+  margin-top: 0.25rem;
 }
 
 .btn-primary:hover {
-    filter: brightness(1.05);
+  filter: brightness(1.05);
 }
 
 .btn-secondary {
-    padding: 0.45rem 0.9rem;
-    border-radius: 999px;
-    border: 1px solid #4b5563;
-    background: transparent;
-    color: #e5e7eb;
-    font-size: 0.85rem;
+  padding: 0.45rem 0.9rem;
+  border-radius: 999px;
+  border: 1px solid #4b5563;
+  background: transparent;
+  color: #e5e7eb;
+  font-size: 0.85rem;
 }
 
 .btn-secondary:hover {
-    background: #111827;
+  background: #111827;
 }
 
-/* Summary rows */
+/* =========================================================
+   MISCELLANEOUS CONTENT BLOCKS
+   - Summary rows, upload boxes, detail grids, etc.
+   ========================================================= */
+
 .summary-row {
-    display: flex;
-    justify-content: space-between;
-    font-size: 0.9rem;
-    margin-bottom: 0.35rem;
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.9rem;
+  margin-bottom: 0.35rem;
 }
 
 .summary-row span:first-child {
-    color: #9ca3af;
+  color: #9ca3af;
 }
 
-/* Upload box */
+/* Drag-and-drop style upload area */
 .upload-box {
-    border-radius: 12px;
-    border: 1px dashed #374151;
-    padding: 0.9rem 0.75rem;
-    margin-top: 0.75rem;
+  border-radius: 12px;
+  border: 1px dashed #374151;
+  padding: 0.9rem 0.75rem;
+  margin-top: 0.75rem;
 }
 
-/* Helper text */
 .helper {
-    font-size: 0.75rem;
-    color: #6b7280;
-    margin-top: 0.5rem;
+  font-size: 0.75rem;
+  color: #6b7280;
+  margin-top: 0.5rem;
 }
 
-/* Preview text */
 .preview-result {
-    font-size: 0.85rem;
+  font-size: 0.85rem;
 }
 
-/* Two-column detail grid inside a card */
+/* Two-column grid for detail stats */
 .detail-grid {
-    display: grid;
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-    gap: 0.5rem 1.25rem;
-    font-size: 0.85rem;
-    margin-top: 0.75rem;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.5rem 1.25rem;
+  font-size: 0.85rem;
+  margin-top: 0.75rem;
 }
 
-/* Responsive */
+/* =========================================================
+   RESPONSIVE (GENERAL)
+   - Adjusts layout for smaller screens (phones/tablets)
+   ========================================================= */
+
 @media (max-width: 900px) {
-    .topbar {
-        padding: 0.75rem 1.25rem;
-        flex-direction: column;
-        align-items: flex-start;
-        gap: 0.75rem;
-    }
+  .topbar {
+    padding: 0.75rem 1.25rem;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.75rem;
+  }
 
-    .layout {
-        padding: 1.25rem;
-    }
+  .layout {
+    padding: 1.25rem;
+  }
 
-    .dashboard-grid {
-        grid-template-columns: 1fr;
-    }
+  .dashboard-grid {
+    grid-template-columns: 1fr;
+  }
 }
+
+/* =========================================================
+   LOGIN HERO
+   - Used on the login/signup landing page
+   - Hero = full-width top section with background video,
+     big title "Your Money. Your Move.", nav, and login card
+   ========================================================= */
+
+/* Container for the entire hero section on login pages */
+.hero-landing {
+  position: relative;
+  height: 85vh;                /* Full viewport height feel */
+  overflow: hidden;
+  padding: 1.5rem 3rem 3rem;
+  background-size: cover;      /* Fallback if no video */
+  background-position: center;
+  isolation: isolate;          /* Keeps z-index stacking clean */
+}
+
+/* Dark gradient overlay above video for text readability */
+.hero-landing::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(to top, rgba(0, 0, 0, 0.6), rgba(0, 0, 0, 0.15));
+  z-index: 0;
+}
+
+/* Background video element (sits behind hero content) */
+.bg-video {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 100%;
+  height: auto;
+  min-height: 100%;
+  min-width: 100%;
+  transform: translate(-50%, -50%);
+  object-fit: cover;
+  z-index: 0;
+  opacity: 0.6;  /* adjust brightness of video */
+}
+
+/* Overlay content on top of the hero (nav + heading + login) */
+.hero-overlay {
+  position: relative;
+  z-index: 1;
+}
+
+/* Top row inside hero: left logo + right nav links (Backtest, Dataset, etc.) */
+.hero-nav-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 3rem;
+}
+
+/* Logo row inside hero (circular "A" + app name) */
+.hero-logo-row {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+/* Circular "A" badge */
+.logo-mark {
+  width: 32px;
+  height: 32px;
+  border-radius: 999px;
+  border: 2px solid #22c55e;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+  font-size: 0.9rem;
+}
+
+/* Right-side nav links inside hero (Backtest, Dataset, Download CSV, Log in, Sign up) */
+.hero-nav-actions {
+  display: flex;
+  align-items: center;
+  gap: 1.25rem;
+  font-size: 0.85rem;
+}
+
+.hero-nav-link {
+  color: #e5e7eb;
+  text-decoration: none;
+}
+
+.hero-nav-link:hover {
+  color: #ffffff;
+}
+
+/* "Sign up" pill button in hero nav */
+.hero-nav-cta {
+  padding: 0.4rem 0.9rem;
+  border-radius: 999px;
+  border: 1px solid #4b5563;
+  text-decoration: none;
+  color: #e5e7eb;
+  font-size: 0.85rem;
+}
+
+.hero-nav-cta:hover {
+  background: #111827;
+}
+
+/* Main hero content row: left copy, right login card */
+.hero-main {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 2rem;
+}
+
+/* Left side hero text block */
+.hero-copy {
+  max-width: 540px;
+}
+
+/* Big “Your Money. Your Move.” heading */
+.hero-title {
+  font-size: 3.4rem;
+  line-height: 1.05;
+  margin: 0 0 1rem;
+}
+
+/* Subheading under main hero title */
+.hero-subtitle {
+  margin: 0 0 1.5rem;
+  color: #d1d5db;
+  font-size: 1rem;
+}
+
+/* "Get started" button under hero text */
+.hero-cta {
+  display: inline-flex;
+  padding: 0.7rem 1.6rem;
+  border-radius: 999px;
+  background: #a3ff3f;
+  color: #020617;
+  text-decoration: none;
+  font-weight: 600;
+  font-size: 0.95rem;
+}
+
+.hero-cta:hover {
+  filter: brightness(1.05);
+}
+
+/* =========================================================
+   LOGIN CARD INSIDE HERO
+   - The glassy login box that floats on top of the video
+   ========================================================= */
+
+.login-card {
+  backdrop-filter: blur(12px);            /* Glass/blur effect */
+  background: rgba(0, 0, 0, 0.35);        /* Transparent dark tint */
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  padding: 1.5rem 2rem;
+  border-radius: 16px;
+  width: 320px;
+  color: #ffffff;
+  z-index: 3;
+}
+
+.login-card label {
+  font-size: 0.85rem;
+  margin-top: 0.75rem;
+}
+
+.login-card input {
+  width: 100%;
+  padding: 0.6rem;
+  border-radius: 8px;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  background: rgba(255, 255, 255, 0.1);
+  color: #ffffff;
+  margin-top: 0.3rem;
+}
+
+.login-card button {
+  margin-top: 1rem;
+  width: 100%;
+  padding: 0.7rem;
+  border-radius: 999px;
+  border: none;
+  background: #a3ff3f;
+  color: #000000;
+  font-weight: bold;
+  cursor: pointer;
+}
+
+.login-card a {
+  color: #a3ff3f;         /* neon green like your theme */
+  text-decoration: none;  /* remove underline */
+  font-weight: 500;
+}
+
+.login-card a:hover {
+  text-decoration: underline;   
+}
+
+/* =========================================================
+   RESPONSIVE (LOGIN HERO ONLY)
+   - Adjust hero layout on small screens
+   ========================================================= */
+
+@media (max-width: 900px) {
+  .hero-landing {
+    padding: 1.25rem 1.25rem 2rem;
+  }
+
+  .hero-main {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .hero-title {
+    font-size: 2.4rem;
+  }
+}
+
+
+/* Signup hero layout:
+   - centers the signup card in the middle of the hero
+*/
+.signup-main {
+  min-height: calc(85vh - 100px);   /* fill most of hero height */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+

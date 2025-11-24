@@ -8,7 +8,7 @@ router.get('/dataset/:symbol', (req, res) => {
     `
     <h1>Selected dataset: ${symbol}</h1>
     <p>This proves route parameters work.</p>
-    <a href="/">Home</a>
+    <a href="/old-home">Home</a>
   `
   );
 });

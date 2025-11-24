@@ -1,0 +1,14 @@
+//- signals.pug
+//- expects `signals` to be an array of { date, price, type }
+
+if signals && signals.length
+  ul.signals-list
+    each s in signals
+      li
+        span.signal-type(class=`signal-${(s.type || '').toLowerCase()}`)= s.type
+        |  at 
+        span.signal-price $#{s.price.toFixed ? s.price.toFixed(2) : s.price}
+        |  on 
+        span.signal-date #{s.date}
+else
+  p No signals.

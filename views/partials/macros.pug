@@ -1,0 +1,5 @@
+mixin metricsRow(label, value)
+  tr
+    td(style="border:1px solid #eee; padding:6px;") #{label}
+    td(style="border:1px solid #eee; padding:6px; text-align:right;")
+      = (value !== undefined && value !== null && value !== '' ? value : 'N/A')

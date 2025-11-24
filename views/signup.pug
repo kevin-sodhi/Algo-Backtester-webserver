@@ -1,0 +1,41 @@
+extends base
+
+block content
+  section.hero-landing
+    // Background video 
+    video.bg-video(autoplay loop muted playsinline)
+      source(src="/public/home.mp4" type="video/mp4")
+
+    .hero-overlay
+      // You can keep or drop hero-nav-row here. 
+      // If you want a super clean signup, you can remove this block.
+      .hero-nav-row
+        .hero-logo-row
+          span.logo-mark A
+          span.app-name Algo Backtester
+
+      // Centered signup card in the middle of hero
+      .signup-main
+        .login-card
+          h2 Create your account
+          p(style="font-size:0.85rem; color:#d1d5db; margin-top:0;")
+            | Start backtesting strategies in minutes.
+
+          form(method="POST" action="/signup")
+            label
+              span Name
+              input(type="text" name="name" required placeholder="Your name")
+
+            label
+              span Email
+              input(type="email" name="email" required placeholder="you@example.com")
+
+            label
+              span Password
+              input(type="password" name="password" required placeholder="••••••••")
+
+            button(type="submit") Create account
+
+          p(style="font-size:0.8rem; margin-top:0.75rem; color:#9ca3af;")
+            | Already have an account?
+            a(href="/login")  Log in

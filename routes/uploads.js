@@ -49,21 +49,21 @@ module.exports = function createUploadsRouter({
       console.error('Multiparty error:', err);
       res
         .status(400)
-        .send(`<h1>Upload error</h1><p>${err.message}</p><a href="/">Back</a>`);
+        .send(`<h1>Upload error</h1><p>${err.message}</p><a href="/old-home">Back</a>`);
     });
 
     form.on('close', () => {
       if (getRejectedFlag() === true) {
         return res
           .status(400)
-          .send('<h1>Only CSV files are allowed </h1><a href="/">Back</a>');
+          .send('<h1>Only CSV files are allowed </h1><a href="/old-home">Back</a>');
       }
 
       const uploaded = getUploadedFile();
       if (!uploaded) {
         return res
           .status(400)
-          .send('<h1>No file uploaded</h1><a href="/">Back</a>');
+          .send('<h1>No file uploaded</h1><a href="/old-home">Back</a>');
       }
 
       res.send(`

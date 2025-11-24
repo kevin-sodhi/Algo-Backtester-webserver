@@ -15,22 +15,25 @@ const backtestLegacyRouter = require('./routes/backtestLegacy');
 const createFilesRouter = require('./routes/files');
 const datasetRouter = require('./routes/dataset');
 const createUploadsRouter = require('./routes/uploads');
+const authRouter = require('./routes/auth');
 app.use(express.json()); // for AJAX
 
-// nunjucks Template implimentation
-const nunjucks = require('nunjucks');
-nunjucks.configure('views', { autoescape: true, express: app }); // 
-app.set('view engine', 'njk');
+// Pug template engine
+app.set('views', path.join(__dirname, 'views'));
+app.set('view engine', 'pug');
 
 const fields = {}; // Stores any text fields (non-file inputs) that come along with the upload.
 let uploadedFile = null;
 let rejectedFile = false;
 
 // --- 2. Middleware --------------------------------------------
-
 // Middleware for static files and URL encoded
 app.use('/public', express.static(path.join(__dirname, 'public')));
 app.use(express.urlencoded({ extended: true }));
+
+app.get('/', (req, res) => {
+  res.redirect('/login');
+});
 
 // Backtest routes (uses Java integration service)
 const backtestRouter = createBacktestRouter({ getUploadedFile: () => uploadedFile });
@@ -67,6 +70,9 @@ app.post('/api/backtest-preview', (req, res) => {
         note: 'These parameters are valid and ready for backtest.'
     });
 });
+// --------------------------- LOG IN PAGE -----------------------
+app.use(authRouter);
+
 
 // --- 4. Custom Handlers-----------------------------------------------
 

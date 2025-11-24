@@ -16,7 +16,7 @@ module.exports = function createBacktestRouter({ getUploadedFile }) {
         slow <= 0 ||
         fast >= slow
       ) {
-        return res.status(400).render('error.njk', {
+        return res.status(400).render('error', {
           title: 'Invalid Parameters',
           code: 400,
           message: 'Use /backtest/run?fast=5&slow=20 with positive integers and fast < slow.',
@@ -40,8 +40,9 @@ module.exports = function createBacktestRouter({ getUploadedFile }) {
         }
       }
 
-      return res.render('backtest-results.njk', {
+      return res.render('backtest-results', {
         title: 'Backtest Results',
+        pageClass: 'backtest-page',
         params: { csv, fast, slow },
         metrics: {
           barsRead: m.barsRead ?? 'N/A',
@@ -56,7 +57,7 @@ module.exports = function createBacktestRouter({ getUploadedFile }) {
       });
     } catch (err) {
       console.error(err);
-      res.status(500).render('error.njk', {
+      res.status(500).render('error', {
         title: 'Server Error',
         code: 500,
         message: err.message || 'Unexpected error while running backtest.',
@@ -76,7 +77,7 @@ module.exports = function createBacktestRouter({ getUploadedFile }) {
       slow <= 0 ||
       fast >= slow
     ) {
-      return res.status(400).render('error.njk', {
+      return res.status(400).render('error', {
         title: 'Invalid Parameters',
         code: 400,
         message: 'Submit positive integers with fast < slow.',
@@ -101,8 +102,9 @@ module.exports = function createBacktestRouter({ getUploadedFile }) {
       }
     }
 
-    return res.render('backtest-results.njk', {
+    return res.render('backtest-results', {
       title: 'Backtest Results',
+      pageClass: 'backtest-page',
       params: { csv, fast, slow },
       metrics: {
         barsRead: m.barsRead ?? 'N/A',
