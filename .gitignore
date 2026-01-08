@@ -3,3 +3,6 @@ data/
 engine/
 public/errors/
 .DS_Store
+credentials.js
+cert.pem
+key.pem

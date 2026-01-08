@@ -14,8 +14,11 @@
   "dependencies": {
     "ejs": "^3.1.10",
     "express": "^5.1.0",
+    "express-session": "^1.18.2",
+    "mongoose": "^9.0.0",
     "multiparty": "^4.2.3",
     "nunjucks": "^3.2.4",
+    "pbkdf2-password": "^1.2.1",
     "pug": "^3.0.3"
   },
   "devDependencies": {
