@@ -8,20 +8,22 @@ Node + Express web app that wraps a Java moving-average backtester. Users sign u
 DEMO SCREENSHOTS
 ----------------
 
-Add screenshots to a folder named: docs/
-(Example file names below — update if yours are different)
-
 Login:
 docs/login.png
+<img width="1706" height="970" alt="login" src="https://github.com/user-attachments/assets/ffbf556a-627a-4f9d-9083-88cbde885f57" />
 
 Create Account (Signup):
 docs/create-account.png
+<img width="1706" height="890" alt="create-account" src="https://github.com/user-attachments/assets/7d8820ab-0875-4fde-b99d-3d0dc5f146b7" />
 
 Home (Upload + Run Backtest):
 docs/home.png
+<img width="1706" height="948" alt="home" src="https://github.com/user-attachments/assets/6ccb30c8-8aaf-4f89-a8a1-99cb788a826c" />
+
 
 Backtest Results (Metrics + Signals + Chart):
 docs/backtest-results.png
+<img width="1706" height="948" alt="backtest-results" src="https://github.com/user-attachments/assets/3a7cb085-dddb-41a7-9676-05e244c23d59" />
 
 ⸻
 
